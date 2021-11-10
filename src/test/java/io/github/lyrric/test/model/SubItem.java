@@ -1,5 +1,6 @@
 package io.github.lyrric.test.model;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -10,9 +11,8 @@ import java.util.List;
 public class SubItem {
 
     public static void main(String[] args) {
-        List<SourcePerson> list = Collections.singletonList(new SourcePerson());
-        convertToList(list);
-        convertToList(Collections.singletonList(new TargetPerson()));
+        BigDecimal bigDecimal = new BigDecimal("1.22");
+        System.out.println(bigDecimal);
     }
 
     public static void convertToList(Collection<?> source) {

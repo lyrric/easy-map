@@ -2,7 +2,9 @@ package io.github.lyrric.test.model;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author wangxiaodong
@@ -10,12 +12,12 @@ import java.util.Date;
 @Data
 public class SourcePerson {
 
-    public Long id ;
+    private Integer id ;
+    private List<List<Integer>> uuid ;
     public SourcePerson() {
-    }
-
-
-    public void t(Long j){
 
     }
+
+
+
 }

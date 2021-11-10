@@ -23,8 +23,8 @@ public class PrimitiveToPrimitiveConversion extends BaseConversion {
     }
 
     @Override
-    FieldConversionResult getConversionCode() {
-        return FieldConversionResult.ofSingleCode("(" + sourceClass.getSimpleName() + ") <SOURCE>");
+    public String getConversionCode() {
+        return"(" + sourceClass.getSimpleName() + ") <SOURCE>";
     }
 
 

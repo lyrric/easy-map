@@ -11,6 +11,7 @@ import java.util.Date;
 public class TargetPerson {
 
     public long id ;
+    private String uuid ;
     public TargetPerson() {
     }
 }

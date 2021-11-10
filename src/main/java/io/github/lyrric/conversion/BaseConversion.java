@@ -47,6 +47,6 @@ public abstract class BaseConversion {
      * convert
      * @return
      */
-    abstract FieldConversionResult getConversionCode();
+    public abstract String getConversionCode();
 
 }

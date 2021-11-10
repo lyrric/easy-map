@@ -63,7 +63,7 @@ public class ClassInfo {
         for (MethodInfo methodInfo : methodInfos) {
             String modifier = methodInfo.getModifier().equals(Modifier.PUBLIC) ? "public" : "private";
             code.append("\n")
-            .append(String.format("%s %s %s(%s source){",
+            .append(String.format("%s static %s %s(%s source){",
                     modifier, methodInfo.getReturnType().getCanonicalName(), methodInfo.getMethodName(), methodInfo.getArgType().getCanonicalName()))
             .append("\n")
             .append(String.join("\n", methodInfo.getCodes()))

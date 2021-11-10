@@ -17,8 +17,8 @@ public class WrapperToStringConversion extends BaseConversion{
     }
 
     @Override
-    FieldConversionResult getConversionCode() {
-        return FieldConversionResult.ofSingleCode("<SOURCE>.toString()");
+    public String getConversionCode() {
+        return "<SOURCE>.toString()";
     }
 
     public static Map<DoubleKey, BaseConversion> getSupportedMap() {

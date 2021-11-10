@@ -20,10 +20,9 @@ public class PrimitiveToWrapperConversion extends BaseConversion{
     }
 
     @Override
-    public FieldConversionResult getConversionCode(){
+    public String getConversionCode(){
         Class<?> targetType = ClassTypeUtil.getPrimitiveType(targetClass);
-        String convertCode = "(" + targetType.getName() + ") <SOURCE>";
-        return FieldConversionResult.of(Collections.singletonList(convertCode));
+        return "(" + targetType.getName() + ") <SOURCE>";
     }
 
     public static Map<DoubleKey, BaseConversion> getSupportedMap() {

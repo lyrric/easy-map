@@ -43,9 +43,9 @@ public class ClassTypeUtil {
      * @param clazz
      * @return
      */
-    public static boolean isPrimitive(Class<?> clazz){
-        return PRIMITIVE_TO_WRAPPER_TYPES.containsKey(clazz);
-    }
+//    public static boolean isPrimitive(Class<?> clazz){
+//        return PRIMITIVE_TO_WRAPPER_TYPES.containsKey(clazz);
+//    }
     /**
      * 是否是包装类型
      * @param clazz
@@ -66,7 +66,7 @@ public class ClassTypeUtil {
                 LocalDate.class,
                 LocalDateTime.class
         );
-        return isPrimitive(clazz) || isWrapper(clazz) || classes.contains(clazz);
+        return clazz.isPrimitive() || isWrapper(clazz) || classes.contains(clazz);
     }
 
 
@@ -76,7 +76,7 @@ public class ClassTypeUtil {
      * @return
      */
     public static Class<?> getPrimitiveType(Class<?> clazz){
-        return WRAPPER_TO_PRIMITIVE_TYPES.get(clazz);
+        return clazz.isPrimitive() ? clazz : WRAPPER_TO_PRIMITIVE_TYPES.get(clazz);
     }
 
     /**
