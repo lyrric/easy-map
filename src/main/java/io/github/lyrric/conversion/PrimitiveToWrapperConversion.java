@@ -1,10 +1,8 @@
 package io.github.lyrric.conversion;
 
 import io.github.lyrric.model.DoubleKey;
-import io.github.lyrric.model.FieldConversionResult;
 import io.github.lyrric.util.ClassTypeUtil;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 

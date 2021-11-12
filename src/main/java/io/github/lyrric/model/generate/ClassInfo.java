@@ -16,11 +16,6 @@ public class ClassInfo {
      * 包名
      */
     private final String packageStr = "io.github.lyrric.generated";
-
-    /**
-     * 需要引入的包
-     */
-    private Set<String> importClasses;
     /**
      * 类名
      */
@@ -34,10 +29,6 @@ public class ClassInfo {
         methodInfos = new ArrayList<>();
     }
 
-
-    public void setImportClasses(Set<String> importClasses) {
-        this.importClasses = importClasses;
-    }
 
 
     public void setClassName(String className) {
@@ -56,8 +47,6 @@ public class ClassInfo {
     public String toJavaSourceString(){
         StringBuilder code = new StringBuilder();
         code.append("package " + packageStr + ";")
-                .append("\n")
-                .append(String.join("\n", importClasses.stream().map(str -> "import " + str + ";").collect(Collectors.toList())))
                 .append("\n")
                 .append("public class ").append(className).append(" {").append("\n");
         for (MethodInfo methodInfo : methodInfos) {

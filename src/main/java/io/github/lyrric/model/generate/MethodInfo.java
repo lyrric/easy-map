@@ -12,7 +12,6 @@ public class MethodInfo {
 
     /**
      * 修饰符private or public
-     * see {@link io.github.lyrric.constant.MethodType}
      */
     private Modifier modifier;
     /**

@@ -1,5 +1,8 @@
 package io.github.lyrric.util;
 
+import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
+
+import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -69,8 +72,6 @@ public class ClassTypeUtil {
         return clazz.isPrimitive() || isWrapper(clazz) || classes.contains(clazz);
     }
 
-
-
     /**
      * 获取包装对象的原始类型
      * @return
@@ -85,5 +86,55 @@ public class ClassTypeUtil {
      */
     public static Class<?> getWrapperType(Class<?> clazz){
         return PRIMITIVE_TO_WRAPPER_TYPES.get(clazz);
+    }
+
+    /**
+     * 是否有泛型
+     * @param type
+     * @return
+     */
+    public static boolean hasGenerics(Type type){
+        return type instanceof ParameterizedTypeImpl;
+    }
+
+    /**
+     * 获取泛型列表
+     * @param type
+     * @return
+     */
+    public static Type[] getGenerics(Type type){
+        Type[] actualTypeArgument = ((ParameterizedTypeImpl)type).getActualTypeArguments();
+        return ((ParameterizedTypeImpl) actualTypeArgument[0]).getActualTypeArguments();
+    }
+
+    /**
+     * 获取自身class
+     * @param type
+     * @return
+     */
+    public static Class<?> getClass(Type type){
+        if(hasGenerics(type)){
+            return ((ParameterizedTypeImpl) type).getRawType();
+        }else{
+            return (Class<?>)type;
+        }
+    }
+
+    /**
+     *
+     * @param type
+     * @return
+     */
+    public static String getKey(Type type){
+        if(hasGenerics(type)){
+            StringBuilder name = new StringBuilder(getClass(type).getName());
+            Type[] generics = getGenerics(type);
+            for (Type generic : generics) {
+                name.append("-").append(getKey(generic));
+            }
+            return name.toString();
+        }else{
+            return ((Class<?>) type).getName();
+        }
     }
 }

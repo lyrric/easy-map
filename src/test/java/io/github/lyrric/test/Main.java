@@ -6,8 +6,11 @@ import io.github.lyrric.test.model.SourcePerson;
 import io.github.lyrric.test.model.TargetPerson;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -15,13 +18,11 @@ import java.util.List;
  */
 public class Main {
 
-    public static void main(String[] args) {
-        Class<SourcePerson> sourcePersonClass = SourcePerson.class;
-        Method[] declaredMethods = sourcePersonClass.getDeclaredMethods();
-        Type genericReturnType = declaredMethods[0].getGenericReturnType();
-        Type[] genericParameterTypes = declaredMethods[0].getGenericParameterTypes();
+    public static void main(String[] args) throws NoSuchMethodException {
+        Type getUuid = SourcePerson.class.getDeclaredMethod("getUuid").getGenericReturnType();
+        Type getUuid1 = SourcePerson.class.getDeclaredMethod("getUuid").getGenericReturnType();
+        System.out.println(getUuid.hashCode());
+        System.out.println(getUuid1.hashCode());
         System.out.println();
-//        ClassInfo generate = new ClassGenerator().generate(SourcePerson.class, TargetPerson.class);
-//        System.out.println(generate.toJavaSourceString());
     }
 }
