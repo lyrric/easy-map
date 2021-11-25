@@ -103,16 +103,17 @@ public class ClassTypeUtil {
      * @return
      */
     public static Type[] getGenerics(Type type){
-        Type[] actualTypeArgument = ((ParameterizedTypeImpl)type).getActualTypeArguments();
-        return ((ParameterizedTypeImpl) actualTypeArgument[0]).getActualTypeArguments();
+        return ((ParameterizedTypeImpl)type).getActualTypeArguments();
+        //return ((ParameterizedTypeImpl) actualTypeArgument[0]).getActualTypeArguments();
     }
+
 
     /**
      * 获取自身class
      * @param type
      * @return
      */
-    public static Class<?> getClass(Type type){
+    public static Class<?> getSelfClass(Type type){
         if(hasGenerics(type)){
             return ((ParameterizedTypeImpl) type).getRawType();
         }else{
@@ -121,20 +122,29 @@ public class ClassTypeUtil {
     }
 
     /**
-     *
+     * getKey
      * @param type
      * @return
      */
     public static String getKey(Type type){
         if(hasGenerics(type)){
-            StringBuilder name = new StringBuilder(getClass(type).getName());
+            StringBuilder name = new StringBuilder(getSelfClass(type).getName());
             Type[] generics = getGenerics(type);
             for (Type generic : generics) {
-                name.append("-").append(getKey(generic));
+                name.append(",").append(getKey(generic));
             }
             return name.toString();
         }else{
             return ((Class<?>) type).getName();
         }
+    }
+
+    public static Type wrapType(Class<?> rawType,
+                                Class<?> ownerType,
+                                Class<?> actualClassArgument){
+        Class<?>[] actualTypeArguments = {actualClassArgument};
+        return ParameterizedTypeImpl.make(rawType,
+                actualTypeArguments,
+                ownerType);
     }
 }

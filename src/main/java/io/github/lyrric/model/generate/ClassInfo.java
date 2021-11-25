@@ -1,10 +1,10 @@
 package io.github.lyrric.model.generate;
 
+import io.github.lyrric.util.ClassTypeUtil;
+
 import javax.lang.model.element.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * 生产的类信息
@@ -39,6 +39,7 @@ public class ClassInfo {
     public void addMethods(List<MethodInfo> methodInfos){
         this.methodInfos.addAll(methodInfos);
     }
+
     public void addMethod(MethodInfo methodInfo){
         this.methodInfos.add(methodInfo);
     }
@@ -53,7 +54,8 @@ public class ClassInfo {
             String modifier = methodInfo.getModifier().equals(Modifier.PUBLIC) ? "public" : "private";
             code.append("\n")
             .append(String.format("%s static %s %s(%s source){",
-                    modifier, methodInfo.getReturnType().getCanonicalName(), methodInfo.getMethodName(), methodInfo.getArgType().getCanonicalName()))
+                    modifier, methodInfo.getReturnType().getTypeName(),
+                    methodInfo.getMethodName(), methodInfo.getArgType().getTypeName()))
             .append("\n")
             .append(String.join("\n", methodInfo.getCodes()))
                     .append("\n")

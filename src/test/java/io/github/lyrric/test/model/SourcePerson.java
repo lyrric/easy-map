@@ -13,10 +13,9 @@ import java.util.List;
 public class SourcePerson {
 
     private Integer id ;
-    private List<List<Integer>> uuid ;
-    public SourcePerson() {
+    private String uuid ;
+    private List<SourcePerson> persons ;
 
-    }
 
 
 
