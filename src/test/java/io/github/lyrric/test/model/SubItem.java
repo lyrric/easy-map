@@ -1,6 +1,5 @@
 package io.github.lyrric.test.model;
 
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;

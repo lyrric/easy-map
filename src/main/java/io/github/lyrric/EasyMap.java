@@ -3,7 +3,7 @@ package io.github.lyrric;
 import io.github.lyrric.generator.ClassGenerator;
 import io.github.lyrric.model.generate.ClassInfo;
 import io.github.lyrric.util.ClassTypeUtil;
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
+import io.github.lyrric.util.JavaCodeFormattingUtil;
 
 import javax.lang.model.element.Modifier;
 import java.lang.reflect.Method;
@@ -33,8 +33,9 @@ public class EasyMap {
 //        Method[] declaredMethods = SourcePerson.class.getDeclaredMethods();
         ClassInfo classInfo = new ClassGenerator().convertObject(
                 ClassTypeUtil.wrapType(List.class, null, sourceList.get(0).getClass()),
-                ClassTypeUtil.wrapType(ArrayList.class, null, targetClass));
-        System.out.println(classInfo.toJavaSourceString());
+                ClassTypeUtil.wrapType(List.class, null, targetClass));
+        //System.out.println(classInfo.toJavaSourceString());
+        System.out.println(JavaCodeFormattingUtil.tryFormat(classInfo.toJavaSourceString()));
         return null;
     }
 

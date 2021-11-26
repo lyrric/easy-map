@@ -1,7 +1,10 @@
 package io.github.lyrric.util;
 
+
+
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -94,7 +97,7 @@ public class ClassTypeUtil {
      * @return
      */
     public static boolean hasGenerics(Type type){
-        return type instanceof ParameterizedTypeImpl;
+        return type instanceof ParameterizedType;
     }
 
     /**
@@ -103,7 +106,7 @@ public class ClassTypeUtil {
      * @return
      */
     public static Type[] getGenerics(Type type){
-        return ((ParameterizedTypeImpl)type).getActualTypeArguments();
+        return ((ParameterizedType)type).getActualTypeArguments();
         //return ((ParameterizedTypeImpl) actualTypeArgument[0]).getActualTypeArguments();
     }
 
@@ -127,16 +130,18 @@ public class ClassTypeUtil {
      * @return
      */
     public static String getKey(Type type){
-        if(hasGenerics(type)){
-            StringBuilder name = new StringBuilder(getSelfClass(type).getName());
-            Type[] generics = getGenerics(type);
-            for (Type generic : generics) {
-                name.append(",").append(getKey(generic));
-            }
-            return name.toString();
-        }else{
-            return ((Class<?>) type).getName();
-        }
+        return type.getTypeName();
+//        if(hasGenerics(type)){
+//            return type.getTypeName();
+//            StringBuilder name = new StringBuilder(getSelfClass(type).getName());
+//            Type[] generics = getGenerics(type);
+//            for (Type generic : generics) {
+//                name.append(",").append(getKey(generic));
+//            }
+//            return name.toString();
+//        }else{
+//            return ((Class<?>) type).getName();
+//        }
     }
 
     public static Type wrapType(Class<?> rawType,
@@ -147,4 +152,5 @@ public class ClassTypeUtil {
                 actualTypeArguments,
                 ownerType);
     }
+
 }

@@ -1,8 +1,10 @@
 package io.github.lyrric.conversion;
 
 import io.github.lyrric.constant.Constant;
+import io.github.lyrric.util.ClassTypeUtil;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 
 /**
  * @author wangxiaodong
@@ -10,12 +12,14 @@ import java.lang.reflect.Method;
 public class ConversionUtil {
 
 
-    public static String convert( Class<?> sourceClass, Class<?> targetClass, String source){
+    public static String convert(Type sourceType, Type targetType, String source){
+        Class<?> sourceFieldClass = ClassTypeUtil.getSelfClass(sourceType);
+        Class<?> targetFieldClass = ClassTypeUtil.getSelfClass(targetType);
         String conversionCode;
-        if(sourceClass == targetClass){
-            conversionCode =  "<SOURCE>";
-        }else{
-            conversionCode =  ConversionFactory.getConversion(sourceClass, targetClass)
+        if (sourceType.equals(targetType)) {
+            conversionCode = "<SOURCE>";
+        } else {
+            conversionCode = ConversionFactory.getConversion(sourceFieldClass, targetFieldClass)
                     .map(BaseConversion::getConversionCode).orElse(null);
         }
         if(conversionCode != null){

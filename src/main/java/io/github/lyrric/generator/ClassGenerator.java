@@ -48,19 +48,6 @@ public class ClassGenerator {
         return classInfo;
     }
 
-    /**
-     * convertList
-     * @param sourceType 源类型
-     * @param targetType 目标类型
-     * @return
-     */
-/*    public ClassInfo convertList(Type sourceType, Type targetType) {
-        ClassInfo classInfo = new ClassInfo();
-        genConvertListMethod(Modifier.PUBLIC, sourceType, targetType);
-        classInfo.addMethods(new ArrayList<>(methodsMap.values()));
-        classInfo.setClassName(generateClassName(targetType.getTypeName()));
-        return classInfo;
-    }*/
 
     private MethodInfo genConvertObjectMethod(final Modifier modifier,
                                               final Type sourceType,
@@ -86,9 +73,11 @@ public class ClassGenerator {
             Arrays.stream(targetMethods).filter(targetMethod -> targetMethod.getName().equals(setterMethodName))
                     .findFirst()
                     .ifPresent(targetMethod -> {
-                        Class<?> sourceFieldClass = sourceMethod.getReturnType();
-                        Class<?> targetFieldClass = targetMethod.getParameterTypes()[0];
-                        String convertCode = ConversionUtil.convert(sourceFieldClass, targetFieldClass, getterCode(sourceMethod));
+                        Type sourceFieldType = sourceMethod.getGenericReturnType();
+                        Type targetFieldType = targetMethod.getGenericParameterTypes()[0];
+                        Class<?> sourceFieldClass = ClassTypeUtil.getSelfClass(sourceFieldType);
+                        Class<?> targetFieldClass = ClassTypeUtil.getSelfClass(targetFieldType);
+                        String convertCode = ConversionUtil.convert(sourceFieldType, targetFieldType, getterCode(sourceMethod));
 
                         if(convertCode != null){
                             convertCode = setterCode(targetMethod, convertCode);
@@ -99,9 +88,9 @@ public class ClassGenerator {
                                     && !ClassTypeUtil.couldDirectConvert(targetFieldClass)){
                                 //复杂对象之间进行转换
                                 //先判断是否已经生成过对应的转换
-                                Optional<MethodInfo> generatedMethod = getGeneratedMethod(sourceFieldClass, targetFieldClass);
-                                MethodInfo m = generatedMethod.orElse(generateMethod(Modifier.PRIVATE, sourceFieldClass, targetFieldClass));
-                                convertCode = Constant.TARGET + "." + targetMethod + "(" + m.getMethodName() + ");";
+                                Optional<MethodInfo> generatedMethod = getGeneratedMethod(sourceFieldType, targetFieldType);
+                                MethodInfo m = generatedMethod.orElse(generateMethod(Modifier.PRIVATE, sourceFieldType, targetFieldType));
+                                convertCode = Constant.TARGET + "." + targetMethod.getName() + "(" + m.getMethodName()+"("+getterCode(sourceMethod)+"));";
                             }
                         }
                         if(convertCode != null){
@@ -132,8 +121,12 @@ public class ClassGenerator {
         MethodInfo methodInfo = new MethodInfo(modifier, targetType, methodName, sourceType);
         saveMethod(methodInfo);
         methodInfo.addCode("if (source == null){return null;}");
-        //methodInfo.addCode(targetType.getTypeName()+" target = new ArrayList<" + targetClass.getName() + ">();");
-        methodInfo.addCode(targetType.getTypeName()+" target = new " + targetType.getTypeName() + "();");
+        if(targetClass.isInterface()){
+            methodInfo.addCode(targetType.getTypeName()+" target = new ArrayList<>();");
+        }else{
+            methodInfo.addCode(targetType.getTypeName()+" target = new " + targetType.getTypeName() + "();");
+        }
+
         methodInfo.addCode("for("+sourceClass.getName()+" sub: source){");
         if(ClassTypeUtil.couldDirectConvert(sourceClass) && ClassTypeUtil.couldDirectConvert(targetClass)){
             //诸如integer，long，date，String类型的可以直接进行转换
