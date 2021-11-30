@@ -57,6 +57,7 @@ public class ClassGenerator {
         final String methodName = modifier == Modifier.PUBLIC ? "convert" : generateMethodName(sourceClass, targetClass);
         MethodInfo methodInfo = new MethodInfo(modifier, targetType, methodName, sourceType);
         saveMethod(methodInfo);
+        methodInfo.addCode("if(source == null) return null;");
         methodInfo.addCode(targetClass.getCanonicalName() + " target = new " + targetClass.getCanonicalName() + "();");
         //获取字段
         Method[] sourceMethods = sourceClass.getDeclaredMethods();
@@ -114,8 +115,8 @@ public class ClassGenerator {
                                    final Type targetType){
         Type sourceGeneric = ClassTypeUtil.getGenerics(sourceType)[0];
         Type targetGeneric = ClassTypeUtil.getGenerics(targetType)[0];
-        Class<?> sourceClass = ClassTypeUtil.getSelfClass(sourceGeneric);
-        Class<?> targetClass = ClassTypeUtil.getSelfClass(targetGeneric);
+        Class<?> sourceClass = ClassTypeUtil.getSelfClass(sourceType);
+        Class<?> targetClass = ClassTypeUtil.getSelfClass(targetType);
 
         final String methodName = modifier == Modifier.PUBLIC ? "convert" : generateMethodName(sourceClass, targetClass);
         MethodInfo methodInfo = new MethodInfo(modifier, targetType, methodName, sourceType);
@@ -130,9 +131,9 @@ public class ClassGenerator {
         methodInfo.addCode("for("+sourceClass.getName()+" sub: source){");
         if(ClassTypeUtil.couldDirectConvert(sourceClass) && ClassTypeUtil.couldDirectConvert(targetClass)){
             //诸如integer，long，date，String类型的可以直接进行转换
-            String convertCode = ConversionUtil.convert(sourceClass, targetClass, "sub");
+            String convertCode = ConversionUtil.convert(sourceGeneric, targetGeneric, "sub");
             if(convertCode != null){
-                methodInfo.addCode("target.add("+convertCode+");");
+                methodInfo.addCode(convertCode.replace("<SET-METHOD-NAME>", "add"));
             }
         }else {
             //复杂类型
@@ -229,7 +230,7 @@ public class ClassGenerator {
     }
 
     private String setterCode(Method targetMethod, String conversionCode){
-        return Constant.TARGET + "." + targetMethod.getName() + "(" + conversionCode + ");";
+        return conversionCode.replace("<SET-METHOD-NAME>",targetMethod.getName());
     }
 
 }
