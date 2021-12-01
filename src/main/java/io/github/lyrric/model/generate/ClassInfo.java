@@ -40,10 +40,13 @@ public class ClassInfo {
         this.methodInfos.addAll(methodInfos);
     }
 
-    public void addMethod(MethodInfo methodInfo){
-        this.methodInfos.add(methodInfo);
+    public String getClassName() {
+        return className;
     }
 
+    public String getPackageStr() {
+        return packageStr;
+    }
 
     public String toJavaSourceString(){
         StringBuilder code = new StringBuilder();

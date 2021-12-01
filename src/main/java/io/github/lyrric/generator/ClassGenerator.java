@@ -123,12 +123,12 @@ public class ClassGenerator {
         saveMethod(methodInfo);
         methodInfo.addCode("if (source == null){return null;}");
         if(targetClass.isInterface()){
-            methodInfo.addCode(targetType.getTypeName()+" target = new ArrayList<>();");
+            methodInfo.addCode(targetType.getTypeName()+" target = new java.util.ArrayList<>();");
         }else{
             methodInfo.addCode(targetType.getTypeName()+" target = new " + targetType.getTypeName() + "();");
         }
 
-        methodInfo.addCode("for("+sourceClass.getName()+" sub: source){");
+        methodInfo.addCode("for(" + sourceGeneric.getTypeName() + " sub: source){");
         if(ClassTypeUtil.couldDirectConvert(sourceClass) && ClassTypeUtil.couldDirectConvert(targetClass)){
             //诸如integer，long，date，String类型的可以直接进行转换
             String convertCode = ConversionUtil.convert(sourceGeneric, targetGeneric, "sub");

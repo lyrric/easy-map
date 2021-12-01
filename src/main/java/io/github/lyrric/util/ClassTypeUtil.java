@@ -2,13 +2,20 @@ package io.github.lyrric.util;
 
 
 
+import net.openhft.compiler.CompilerUtils;
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
+import javax.tools.JavaCompiler;
+import javax.tools.JavaFileObject;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.ToolProvider;
+import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author wangxiaodong
@@ -153,4 +160,24 @@ public class ClassTypeUtil {
                 ownerType);
     }
 
+    public static byte[] compile(String fileName, String javaCode) throws IOException {
+        Map<String, byte[]> results = new HashMap<>();
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+
+        StandardJavaFileManager stdManager = compiler.getStandardFileManager(null,
+                null, null);
+        try (MemoryJavaFileManager manager = new MemoryJavaFileManager(stdManager)) {
+            JavaFileObject javaFileObject = manager.makeStringSource(fileName, javaCode);
+            JavaCompiler.CompilationTask task = compiler.getTask(null, manager, null,
+                    Collections.singletonList("-implicit:none"), null, Collections.singletonList(javaFileObject));
+            if (task.call()) {
+                results = manager.getClassBytes();
+            }
+        }
+        return new ArrayList<>(results.values()).get(0);
+    }
+
+    public static void hftCompile(String className, String javaCode) throws ClassNotFoundException {
+        Class<?> aClass = CompilerUtils.CACHED_COMPILER.loadFromJava(className, javaCode);
+    }
 }
