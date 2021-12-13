@@ -177,7 +177,7 @@ public class ClassTypeUtil {
         return new ArrayList<>(results.values()).get(0);
     }
 
-    public static void hftCompile(String className, String javaCode) throws ClassNotFoundException {
-        Class<?> aClass = CompilerUtils.CACHED_COMPILER.loadFromJava(className, javaCode);
+    public static Class<?> hftCompile(String className, String javaCode) throws ClassNotFoundException {
+        return CompilerUtils.CACHED_COMPILER.loadFromJava(className, javaCode);
     }
 }
