@@ -13,10 +13,6 @@ import java.util.List;
 public class SourcePerson {
 
     private Integer id ;
-    private String uuid ;
-    private List<SourcePerson> persons ;
-
-
-
+    private Long uuid ;
 
 }

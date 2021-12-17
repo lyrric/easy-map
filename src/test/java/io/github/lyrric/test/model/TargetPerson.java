@@ -13,6 +13,5 @@ public class TargetPerson {
 
     public long id ;
     private String uuid ;
-    private List<TargetPerson> persons ;
 
 }

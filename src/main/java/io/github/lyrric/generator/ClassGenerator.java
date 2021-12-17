@@ -5,6 +5,8 @@ import io.github.lyrric.conversion.ConversionUtil;
 import io.github.lyrric.model.generate.ClassInfo;
 import io.github.lyrric.model.generate.MethodInfo;
 import io.github.lyrric.util.ClassTypeUtil;
+import io.github.lyrric.util.JavaCodeFormattingUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,9 +19,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author wangxiaodong
  */
+@Slf4j
 public class ClassGenerator {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ClassGenerator.class);
 
     /**
      * 生成类的当前编号
@@ -41,10 +42,11 @@ public class ClassGenerator {
     public ClassInfo convertObject(Type sourceType, Type targetType) {
         ClassInfo classInfo = new ClassInfo();
         Class<?> targetClass = ClassTypeUtil.getSelfClass(targetType);
-
         generateMethod(Modifier.PUBLIC, sourceType, targetType);
         classInfo.addMethods(new ArrayList<>(methodsMap.values()));
         classInfo.setClassName(generateClassName(targetClass.getSimpleName()));
+        log.info("generated class, key:{}->{} , name:{}", sourceType.getTypeName(), targetType.getTypeName(), classInfo.getClassName());
+        log.debug(JavaCodeFormattingUtil.tryFormat(classInfo.toJavaSourceString()));
         return classInfo;
     }
 
@@ -166,7 +168,7 @@ public class ClassGenerator {
         Class<?> targetClass = ClassTypeUtil.getSelfClass(targetType);
         if (ClassTypeUtil.couldDirectConvert(sourceClass) || ClassTypeUtil.couldDirectConvert(targetClass)) {
             //一个是基本数据类型，另一个不是基本数据类型，这种情况是错误的，并且无法进行转换
-            LOGGER.error("class {} can not convert to {}", sourceClass.getName(), targetClass.getName());
+            log.error("class {} can not convert to {}", sourceClass.getName(), targetClass.getName());
             return null;
         }
         if(List.class.isAssignableFrom(sourceClass) && List.class.isAssignableFrom(targetClass)){
@@ -210,20 +212,18 @@ public class ClassGenerator {
     }
 
 
-    private Optional<MethodInfo> getGeneratedMethod(Type sourceClass, Type targetClass) {
-        String key = ClassTypeUtil.getKey(sourceClass) + "->" +  ClassTypeUtil.getKey(targetClass);
+    private Optional<MethodInfo> getGeneratedMethod(Type sourceType, Type targetType) {
+        String key = ClassTypeUtil.getKey(sourceType, targetType);
         return Optional.ofNullable(methodsMap.get(key));
     }
 
     private void saveMethod(MethodInfo methodInfo) {
-        String key = getKey(methodInfo.getArgType(), methodInfo.getReturnType());
+        String key = ClassTypeUtil.getKey(methodInfo.getArgType(), methodInfo.getReturnType());
         methodsMap.put(key, methodInfo);
         methodNames.add(methodInfo.getMethodName());
     }
 
-    private String getKey(Type sourceClass, Type targetClass) {
-        return ClassTypeUtil.getKey(sourceClass) + "->" + ClassTypeUtil.getKey(targetClass);
-    }
+
 
     private String getterCode(Method sourceMethod){
         return Constant.SOURCE + "." + sourceMethod.getName() + "()";

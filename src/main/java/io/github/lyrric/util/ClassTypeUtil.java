@@ -130,25 +130,8 @@ public class ClassTypeUtil {
             return (Class<?>)type;
         }
     }
-
-    /**
-     * getKey
-     * @param type
-     * @return
-     */
-    public static String getKey(Type type){
-        return type.getTypeName();
-//        if(hasGenerics(type)){
-//            return type.getTypeName();
-//            StringBuilder name = new StringBuilder(getSelfClass(type).getName());
-//            Type[] generics = getGenerics(type);
-//            for (Type generic : generics) {
-//                name.append(",").append(getKey(generic));
-//            }
-//            return name.toString();
-//        }else{
-//            return ((Class<?>) type).getName();
-//        }
+    public static String getKey(Type sourceClass, Type targetClass) {
+        return sourceClass.getTypeName() + "->" +  targetClass.getTypeName();
     }
 
     public static Type wrapType(Class<?> rawType,

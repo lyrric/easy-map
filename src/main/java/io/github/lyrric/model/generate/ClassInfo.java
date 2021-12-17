@@ -23,7 +23,15 @@ public class ClassInfo {
     /**
      * 方法列表
      */
-    private List<MethodInfo> methodInfos;
+    private final List<MethodInfo> methodInfos;
+    /**
+     * 实例
+     */
+    private Object instance;
+    /**
+     *
+     */
+    private Class<?> clazz;
 
     public ClassInfo() {
         methodInfos = new ArrayList<>();
@@ -67,5 +75,22 @@ public class ClassInfo {
         code.append("\n")
                 .append("}");
         return code.toString();
+    }
+
+
+    public Object getInstance() {
+        return instance;
+    }
+
+    public void setInstance(Object instance) {
+        this.instance = instance;
+    }
+
+    public Class<?> getClazz() {
+        return clazz;
+    }
+
+    public void setClazz(Class<?> clazz) {
+        this.clazz = clazz;
     }
 }
