@@ -1,21 +1,14 @@
 package io.github.lyrric.util;
 
 
-
 import net.openhft.compiler.CompilerUtils;
 import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileObject;
-import javax.tools.StandardJavaFileManager;
-import javax.tools.ToolProvider;
-import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author wangxiaodong
@@ -52,14 +45,6 @@ public class ClassTypeUtil {
         PRIMITIVE_TO_WRAPPER_TYPES.put(long.class, Long.class);
     }
     /**
-     * 是否是原始类型
-     * @param clazz
-     * @return
-     */
-//    public static boolean isPrimitive(Class<?> clazz){
-//        return PRIMITIVE_TO_WRAPPER_TYPES.containsKey(clazz);
-//    }
-    /**
      * 是否是包装类型
      * @param clazz
      * @return
@@ -83,19 +68,18 @@ public class ClassTypeUtil {
     }
 
     /**
-     * 获取包装对象的原始类型
-     * @return
-     */
-    public static Class<?> getPrimitiveType(Class<?> clazz){
-        return clazz.isPrimitive() ? clazz : WRAPPER_TO_PRIMITIVE_TYPES.get(clazz);
-    }
-
-    /**
      * 获取原始类型的包装对象
      * @return
      */
     public static Class<?> getWrapperType(Class<?> clazz){
         return PRIMITIVE_TO_WRAPPER_TYPES.get(clazz);
+    }
+    /**
+     * 获取包装对象的原始类型
+     * @return
+     */
+    public static Class<?> getPrimitiveType(Class<?> clazz){
+        return clazz.isPrimitive() ? clazz : WRAPPER_TO_PRIMITIVE_TYPES.get(clazz);
     }
 
     /**
@@ -114,7 +98,6 @@ public class ClassTypeUtil {
      */
     public static Type[] getGenerics(Type type){
         return ((ParameterizedType)type).getActualTypeArguments();
-        //return ((ParameterizedTypeImpl) actualTypeArgument[0]).getActualTypeArguments();
     }
 
 
@@ -141,23 +124,6 @@ public class ClassTypeUtil {
         return ParameterizedTypeImpl.make(rawType,
                 actualTypeArguments,
                 ownerType);
-    }
-
-    public static byte[] compile(String fileName, String javaCode) throws IOException {
-        Map<String, byte[]> results = new HashMap<>();
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-
-        StandardJavaFileManager stdManager = compiler.getStandardFileManager(null,
-                null, null);
-        try (MemoryJavaFileManager manager = new MemoryJavaFileManager(stdManager)) {
-            JavaFileObject javaFileObject = manager.makeStringSource(fileName, javaCode);
-            JavaCompiler.CompilationTask task = compiler.getTask(null, manager, null,
-                    Collections.singletonList("-implicit:none"), null, Collections.singletonList(javaFileObject));
-            if (task.call()) {
-                results = manager.getClassBytes();
-            }
-        }
-        return new ArrayList<>(results.values()).get(0);
     }
 
     public static Class<?> hftCompile(String className, String javaCode) throws ClassNotFoundException {

@@ -41,12 +41,14 @@ public class PrimitiveToPrimitiveConversion extends BaseConversion {
             put( new DoubleKey(short.class, double.class), new PrimitiveToWrapperConversion(short.class, double.class));
 
             put( new DoubleKey(int.class, long.class ), new PrimitiveToWrapperConversion(int.class, long.class));
+            put( new DoubleKey(long.class, int.class ), new PrimitiveToWrapperConversion(long.class, int.class));
             put( new DoubleKey(int.class, float.class ), new PrimitiveToWrapperConversion(int.class, float.class));
             put( new DoubleKey(int.class, double.class ), new PrimitiveToWrapperConversion(int.class, double.class));
 
             put( new DoubleKey(long.class, float.class ), new PrimitiveToWrapperConversion(long.class, float.class ));
             put( new DoubleKey(long.class, double.class ), new PrimitiveToWrapperConversion(long.class, double.class));
             put( new DoubleKey(float.class, double.class ), new PrimitiveToWrapperConversion(float.class, double.class));
+            put( new DoubleKey(double.class, float.class ), new PrimitiveToWrapperConversion(double.class, float.class));
         }};
     }
 

@@ -1,6 +1,5 @@
 package io.github.lyrric.conversion;
 
-import io.github.lyrric.conversion.BaseConversion;
 import io.github.lyrric.model.DoubleKey;
 
 import java.util.HashMap;
@@ -18,7 +17,8 @@ public class ConversionFactory {
         CONVERSIONS.putAll(PrimitiveToPrimitiveConversion.getSupportedMap());
         CONVERSIONS.putAll(PrimitiveToWrapperConversion.getSupportedMap());
         CONVERSIONS.putAll(WrapperToBasicConversion.getSupportedMap());
-        CONVERSIONS.putAll(WrapperToStringConversion.getSupportedMap());
+        CONVERSIONS.putAll(BasicToStringConversion.getSupportedMap());
+        CONVERSIONS.putAll(StringToPrimitiveConversion.getSupportedMap());
     }
 
     public static Optional<BaseConversion> getConversion(Class<?> sourceClass, Class<?> targetClass){

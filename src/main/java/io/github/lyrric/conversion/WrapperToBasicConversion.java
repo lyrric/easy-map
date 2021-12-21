@@ -61,8 +61,11 @@ public class WrapperToBasicConversion extends BaseConversion {
             put(new DoubleKey(Integer.class, double.class), new WrapperToBasicConversion(Integer.class, double.class));
             put(new DoubleKey(Integer.class, Double.class), new WrapperToBasicConversion(Integer.class, Double.class));
 
-            put(new DoubleKey(Long.class, float.class), new WrapperToBasicConversion(Long.class, float.class));
+
+            put(new DoubleKey(Long.class, int.class), new WrapperToBasicConversion(Long.class, int.class));
+            put(new DoubleKey(Long.class, Integer.class), new WrapperToBasicConversion(Long.class, Integer.class));
             put(new DoubleKey(Long.class, long.class), new WrapperToBasicConversion(Long.class, long.class));
+            put(new DoubleKey(Long.class, float.class), new WrapperToBasicConversion(Long.class, float.class));
             put(new DoubleKey(Long.class, Float.class), new WrapperToBasicConversion(Long.class, Float.class));
             put(new DoubleKey(Long.class, double.class), new WrapperToBasicConversion(Long.class, double.class));
             put(new DoubleKey(Long.class, Double.class), new WrapperToBasicConversion(Long.class, Double.class));
@@ -72,6 +75,8 @@ public class WrapperToBasicConversion extends BaseConversion {
             put(new DoubleKey(Float.class, Double.class), new WrapperToBasicConversion(Float.class, Double.class));
 
             put(new DoubleKey(Double.class, double.class), new WrapperToBasicConversion(Double.class, double.class));
+            put(new DoubleKey(Double.class, float.class), new WrapperToBasicConversion(Double.class, float.class));
+            put(new DoubleKey(Double.class, Float.class), new WrapperToBasicConversion(Double.class, Float.class));
 
 
         }};
