@@ -7,8 +7,6 @@ import io.github.lyrric.model.generate.MethodInfo;
 import io.github.lyrric.util.ClassTypeUtil;
 import io.github.lyrric.util.JavaCodeFormattingUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.lang.model.element.Modifier;
 import java.lang.reflect.Method;
@@ -112,9 +110,9 @@ public class ClassGenerator {
      * @param targetType 目标类型，List<T>
      * @return
      */
-    private MethodInfo genConvertListMethod(final Modifier modifier,
-                                   final Type sourceType,
-                                   final Type targetType){
+    private MethodInfo genConvertCollectionMethod(final Modifier modifier,
+                                                  final Type sourceType,
+                                                  final Type targetType){
         Type sourceGeneric = ClassTypeUtil.getGenerics(sourceType)[0];
         Type targetGeneric = ClassTypeUtil.getGenerics(targetType)[0];
         Class<?> sourceClass = ClassTypeUtil.getSelfClass(sourceType);
@@ -125,7 +123,14 @@ public class ClassGenerator {
         saveMethod(methodInfo);
         methodInfo.addCode("if (source == null){return null;}");
         if(targetClass.isInterface()){
-            methodInfo.addCode(targetType.getTypeName()+" target = new java.util.ArrayList<>();");
+            //判断是list还是set
+            String newInstanceCode = null;
+            if(List.class.isAssignableFrom(targetClass)){
+                newInstanceCode = targetType.getTypeName() + " target = new java.util.ArrayList<>();";
+            }else if(Set.class.isAssignableFrom(targetClass)){
+                newInstanceCode = targetType.getTypeName() + " target = new java.util.HashSet<>();";
+            }
+            methodInfo.addCode(newInstanceCode);
         }else{
             methodInfo.addCode(targetType.getTypeName()+" target = new " + targetType.getTypeName() + "();");
         }
@@ -171,9 +176,9 @@ public class ClassGenerator {
             log.error("class {} can not convert to {}", sourceClass.getName(), targetClass.getName());
             return null;
         }
-        if(List.class.isAssignableFrom(sourceClass) && List.class.isAssignableFrom(targetClass)){
-            //List之间的转换,直接重新生成，避免
-            return genConvertListMethod(modifier,
+        if (Collection.class.isAssignableFrom(sourceClass) && Collection.class.isAssignableFrom(targetClass)) {
+            //集合之间的转换
+            return genConvertCollectionMethod(modifier,
                     sourceType, targetType);
         }
         //普通对象之间的转换
@@ -222,8 +227,6 @@ public class ClassGenerator {
         methodsMap.put(key, methodInfo);
         methodNames.add(methodInfo.getMethodName());
     }
-
-
 
     private String getterCode(Method sourceMethod){
         return Constant.SOURCE + "." + sourceMethod.getName() + "()";

@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -19,7 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 public class EasyMap {
-
 
     private static final Map<String, ClassInfo> instanceMap = new ConcurrentHashMap<>();
 
@@ -29,12 +29,9 @@ public class EasyMap {
         if(source == null){
             return null;
         }
-        ClassInfo classInfo = getClassInfo(source.getClass(), targetClass);
-        Object instance = classInfo.getInstance();
-        Method method = instance.getClass().getMethod("convert", source.getClass());
         //放一亿个心，不会报错
         @SuppressWarnings("unchecked")
-        T result = (T) method.invoke(instance, source);
+        T result = (T) map(source.getClass(), targetClass, source);
         return result;
     }
 
@@ -44,16 +41,30 @@ public class EasyMap {
         }
         Type source = ClassTypeUtil.wrapType(List.class, null, sourceList.get(0).getClass());
         Type target = ClassTypeUtil.wrapType(List.class, null, targetClass);
-        ClassInfo classInfo = getClassInfo(source, target);
-        Object instance = classInfo.getInstance();
-        Method method = instance.getClass().getMethod("convert", ClassTypeUtil.getSelfClass(source));
         @SuppressWarnings("unchecked")
         //放一亿个心，不会报错
-        List<T> result = (List<T>) method.invoke(instance, sourceList);
+        List<T> result = (List<T>) map(source, target, sourceList);
         return result;
     }
 
+    public static <T> Set<T> mapSet(Set<?> sourceSet, Class<T> targetClass) throws  NoSuchMethodException,  IllegalAccessException, InvocationTargetException {
+        if (sourceSet == null || sourceSet.size() == 0) {
+            return Collections.emptySet();
+        }
+        Type source = ClassTypeUtil.wrapType(Set.class, null, sourceSet.stream().findFirst().get().getClass());
+        Type target = ClassTypeUtil.wrapType(Set.class, null, targetClass);
+        @SuppressWarnings("unchecked")
+        //放一亿个心，不会报错
+        Set<T> result = (Set<T>) map(source, target, sourceSet);
+        return result;
+    }
 
+    private static Object map(Type source, Type target, Object sourceData) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        ClassInfo classInfo = getClassInfo(source, target);
+        Object instance = classInfo.getInstance();
+        Method method = instance.getClass().getMethod("convert", ClassTypeUtil.getSelfClass(source));
+        return method.invoke(instance, sourceData);
+    }
 
     private static ClassInfo getClassInfo(Type source, Type target) {
         String key = ClassTypeUtil.getKey(source, target);

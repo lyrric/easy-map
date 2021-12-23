@@ -34,7 +34,6 @@ public class ConversionUtil {
 
         if(conversionCode != null){
             conversionCode = conversionCode.replace("<SOURCE>",source);
-
         }
         return conversionCode;
     }
