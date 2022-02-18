@@ -83,6 +83,7 @@ public class EasyMap {
             } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
                 //我生成的代码有啥东西我还不知道吗，抛你大爷的异常
                 e.printStackTrace();
+                log.error("生成class异常", e);
             }
             return classInfo;
         });

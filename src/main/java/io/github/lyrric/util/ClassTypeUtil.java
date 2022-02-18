@@ -1,8 +1,8 @@
 package io.github.lyrric.util;
 
 
+import io.github.lyrric.model.ParameterizedTypeImpl;
 import net.openhft.compiler.CompilerUtils;
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -108,7 +108,7 @@ public class ClassTypeUtil {
      */
     public static Class<?> getSelfClass(Type type){
         if(hasGenerics(type)){
-            return ((ParameterizedTypeImpl) type).getRawType();
+            return (Class<?>) (((ParameterizedTypeImpl) type).getRawType());
         }else{
             return (Class<?>)type;
         }

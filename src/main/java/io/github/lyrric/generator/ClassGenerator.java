@@ -43,7 +43,7 @@ public class ClassGenerator {
         generateMethod(Modifier.PUBLIC, sourceType, targetType);
         classInfo.addMethods(new ArrayList<>(methodsMap.values()));
         classInfo.setClassName(generateClassName(targetClass.getSimpleName()));
-        log.info("generated class, key:{}->{} , name:{}", sourceType.getTypeName(), targetType.getTypeName(), classInfo.getClassName());
+        log.info("class generated, key:{}->{} , name:{}", sourceType.getTypeName(), targetType.getTypeName(), classInfo.getClassName());
         log.debug(JavaCodeFormattingUtil.tryFormat(classInfo.toJavaSourceString()));
         return classInfo;
     }
@@ -91,7 +91,9 @@ public class ClassGenerator {
                                 //先判断是否已经生成过对应的转换
                                 Optional<MethodInfo> generatedMethod = getGeneratedMethod(sourceFieldType, targetFieldType);
                                 MethodInfo m = generatedMethod.orElse(generateMethod(Modifier.PRIVATE, sourceFieldType, targetFieldType));
-                                convertCode = Constant.TARGET + "." + targetMethod.getName() + "(" + m.getMethodName()+"("+getterCode(sourceMethod)+"));";
+                                if(m != null){
+                                    convertCode = Constant.TARGET + "." + targetMethod.getName() + "(" + m.getMethodName()+"("+getterCode(sourceMethod)+"));";
+                                }
                             }
                         }
                         if(convertCode != null){
@@ -121,9 +123,9 @@ public class ClassGenerator {
         final String methodName = modifier == Modifier.PUBLIC ? "convert" : generateMethodName(sourceClass, targetClass);
         MethodInfo methodInfo = new MethodInfo(modifier, targetType, methodName, sourceType);
         saveMethod(methodInfo);
-        methodInfo.addCode("if (source == null){return null;}");
+        methodInfo.addCode("if(source == null){return null;}");
         if(targetClass.isInterface()){
-            //判断是list还是set
+            //抽象类，如List、Set，无法直接new
             String newInstanceCode = null;
             if(List.class.isAssignableFrom(targetClass)){
                 newInstanceCode = targetType.getTypeName() + " target = new java.util.ArrayList<>();";
@@ -145,9 +147,10 @@ public class ClassGenerator {
         }else {
             //复杂类型
             MethodInfo m = generateMethod(Modifier.PRIVATE, sourceGeneric, targetGeneric);
-            methodInfo.addCode("target.add("+m.getMethodName()+"(sub));");
+            if(m != null){
+                methodInfo.addCode("target.add(" + m.getMethodName() + "(sub));");
+            }
         }
-
         methodInfo.addCode("}");
         methodInfo.addCode("return target;");
         return methodInfo;
@@ -172,7 +175,7 @@ public class ClassGenerator {
         Class<?> sourceClass = ClassTypeUtil.getSelfClass(sourceType);
         Class<?> targetClass = ClassTypeUtil.getSelfClass(targetType);
         if (ClassTypeUtil.couldDirectConvert(sourceClass) || ClassTypeUtil.couldDirectConvert(targetClass)) {
-            //一个是基本数据类型，另一个不是基本数据类型，这种情况是错误的，并且无法进行转换
+            //一个是基本数据类型，另一个不是基本数据类型，这种情况是异常的，无法进行转换
             log.error("class {} can not convert to {}", sourceClass.getName(), targetClass.getName());
             return null;
         }
