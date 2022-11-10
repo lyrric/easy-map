@@ -1,4 +1,4 @@
-# OMG
+# Easy Map Struct
 ## 说明
 用于对象之间相互转换，类似MapStruct和Spring的BeanUtils.copyProperties().
 ## feature
@@ -9,11 +9,11 @@
 - EasyMap效率高，采用在内存中生成转换的Java代码，编译并直接调用，除了第一次比较耗时，后面每次调用基本可以与MapStruct的效率持平。
 ## 使用方法  
 ### 单个对象
-TargetPerson targetPeople = EasyMap.mapSingleton(sourcePerson, TargetPerson.class);  
+TargetPerson targetPeople = EasyMapStruct.mapSingleton(sourcePerson, TargetPerson.class);  
 ### list
-List<TargetPerson> targetPeoples = EasyMap.mapList(sourcePeoples, TargetPerson.class);  
+List<TargetPerson> targetPeoples = EasyMapStruct.mapList(sourcePeoples, TargetPerson.class);  
 ### set  
-Set<TargetPerson> targetPeoples = EasyMap.mapSet(sourcePeoples, TargetPerson.class);  
+Set<TargetPerson> targetPeoples = EasyMapStruct.mapSet(sourcePeoples, TargetPerson.class);  
 ## 问题
 - 第一次编译的时间总是很长，1.7s多，得想个办法在启动后主动触发一次编译  
 ## 需要支持吗？疑问  
