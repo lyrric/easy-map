@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author wangxiaodong
@@ -53,8 +54,7 @@ public class TestMain {
 
     @Test
     public void t(){
-        List<Integer> collect = Collections.singletonList(4)
-                .stream().filter(t -> t.equals(4))
+        List<Integer> collect = Stream.of(4).filter(t -> t.equals(4))
                 .collect(Collectors.toList());
         System.out.println(collect);
     }

@@ -1,6 +1,5 @@
 package io.github.lyrric.easymapstruct.model.generate;
 
-import javax.lang.model.element.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,15 +59,7 @@ public class ClassInfo {
                 .append("\n")
                 .append("public class ").append(className).append(" {").append("\n");
         for (MethodInfo methodInfo : methodInfos) {
-            String modifier = methodInfo.getModifier().equals(Modifier.PUBLIC) ? "public" : "private";
-            code.append("\n")
-            .append(String.format("%s static %s %s(%s source){",
-                    modifier, methodInfo.getReturnType().getTypeName(),
-                    methodInfo.getMethodName(), methodInfo.getArgType().getTypeName()))
-            .append("\n")
-            .append(String.join("\n", methodInfo.getCodes()))
-                    .append("\n")
-            .append("}");
+           code.append(methodInfo.toJavaSourceString());
         }
         code.append("\n")
                 .append("}");

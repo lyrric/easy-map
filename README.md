@@ -14,6 +14,9 @@ TargetPerson targetPeople = EasyMapStruct.mapSingleton(sourcePerson, TargetPerso
 List<TargetPerson> targetPeoples = EasyMapStruct.mapList(sourcePeoples, TargetPerson.class);  
 ### set  
 Set<TargetPerson> targetPeoples = EasyMapStruct.mapSet(sourcePeoples, TargetPerson.class);  
+
+## 更新记录
+- 2022年11月11日 v0.1版本，支持了内部类之间的转换。
 ## 问题
 - 第一次编译的时间总是很长，1.7s多，得想个办法在启动后主动触发一次编译  
 ## 需要支持吗？疑问  

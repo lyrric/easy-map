@@ -2,10 +2,6 @@ package io.github.lyrric.easymapstruct.test.model;
 
 import lombok.Data;
 
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
-
 /**
  * @author wangxiaodong
  */
@@ -15,4 +11,11 @@ public class SourcePerson {
     private Integer id ;
     private Long uuid ;
 
+    private SubSourceItem subItem;
+
+    @Data
+    public static class SubSourceItem{
+        private Integer subId;
+
+    }
 }
