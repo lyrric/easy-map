@@ -11,8 +11,6 @@ public class TargetPerson {
     public long id ;
     private String uuid ;
 
-    private SubTargetItem subItem;
-
     @Data
     public static class SubTargetItem{
         private Integer subId;

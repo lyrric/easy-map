@@ -26,8 +26,9 @@ public class ParameterizedTypeImpl implements ParameterizedType {
     }
 
     public static ParameterizedTypeImpl make(Class<?> rawType,
-                                             Type[] actualTypeArguments,
-                                             Type ownerType) {
+                                             Class<?> ownerType,
+                                             Class<?> actualClassArgument) {
+        Class<?>[] actualTypeArguments = {actualClassArgument};
         return new ParameterizedTypeImpl(actualTypeArguments, ownerType,rawType);
     }
 
@@ -45,6 +46,7 @@ public class ParameterizedTypeImpl implements ParameterizedType {
     public Type getOwnerType() {
         return ownerType;
     }
+
 
     @Override
     public String toString() {

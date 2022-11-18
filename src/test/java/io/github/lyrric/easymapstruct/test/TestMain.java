@@ -6,12 +6,10 @@ import io.github.lyrric.easymapstruct.test.model.SourcePerson;
 import io.github.lyrric.easymapstruct.test.model.TargetPerson;
 import org.junit.Test;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author wangxiaodong
@@ -19,7 +17,7 @@ import java.util.stream.Stream;
 public class TestMain {
 
     @Test
-    public void testSingle() throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+    public void testSingle()  {
         SourcePerson sourcePerson = new SourcePerson();
         sourcePerson.setId(1);
         sourcePerson.setUuid(12345L);
@@ -29,7 +27,7 @@ public class TestMain {
     }
 
     @Test
-    public void testList() throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+    public void testList() {
         SourcePerson sourcePerson = new SourcePerson();
         sourcePerson.setId(1);
         sourcePerson.setUuid(12345L);
@@ -40,7 +38,7 @@ public class TestMain {
     }
 
     @Test
-    public void testSet() throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+    public void testSet()  {
         SourcePerson sourcePerson = new SourcePerson();
         sourcePerson.setId(1);
         sourcePerson.setUuid(12345L);
@@ -53,9 +51,34 @@ public class TestMain {
 
 
     @Test
-    public void t(){
-        List<Integer> collect = Stream.of(4).filter(t -> t.equals(4))
-                .collect(Collectors.toList());
-        System.out.println(collect);
+    public void testArray(){
+        SourcePerson sourcePerson = new SourcePerson();
+        sourcePerson.setId(1);
+        sourcePerson.setUuid(123L);
+        SourcePerson[] source = new SourcePerson[]{sourcePerson};
+        TargetPerson[] target = EasyMapStruct.mapArray(source, TargetPerson.class);
+        SourcePerson[] result = EasyMapStruct.mapArray(target, SourcePerson.class);
+        for (int i = 0; i < source.length; i++) {
+            assert source[i].equals(result[i]);
+        }
+    }
+
+    @Test
+    public void testArray2(){
+        Integer[] source = new Integer[]{1, 2, 3, 4};
+        Long[] target = EasyMapStruct.mapArray(source, Long.class);
+        for (int i = 0; i < source.length; i++) {
+            assert source[i].equals(target[i].intValue());
+        }
+    }
+
+    @Test
+    public void test(){
+        SourcePerson[] sourcePeople = new SourcePerson[1];
+        Class<? extends SourcePerson[]> aClass = sourcePeople.getClass();
+        System.out.println(aClass.getName());
+        System.out.println(aClass.getTypeName());
+        System.out.println(aClass.getCanonicalName());
+        System.out.println(aClass.getSimpleName());
     }
 }

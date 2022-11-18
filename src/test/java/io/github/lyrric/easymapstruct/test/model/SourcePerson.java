@@ -2,6 +2,8 @@ package io.github.lyrric.easymapstruct.test.model;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @author wangxiaodong
  */
@@ -11,7 +13,7 @@ public class SourcePerson {
     private Integer id ;
     private Long uuid ;
 
-    private SubSourceItem subItem;
+
 
     @Data
     public static class SubSourceItem{

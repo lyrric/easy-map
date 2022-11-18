@@ -2,6 +2,7 @@ package io.github.lyrric.easymapstruct.generator;
 
 import io.github.lyrric.easymapstruct.constant.Constant;
 import io.github.lyrric.easymapstruct.conversion.ConversionUtil;
+import io.github.lyrric.easymapstruct.model.ParameterizedTypeImpl;
 import io.github.lyrric.easymapstruct.model.generate.ClassInfo;
 import io.github.lyrric.easymapstruct.model.generate.MethodInfo;
 import io.github.lyrric.easymapstruct.util.ClassTypeUtil;
@@ -9,7 +10,9 @@ import io.github.lyrric.easymapstruct.util.JavaCodeFormattingUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.lang.model.element.Modifier;
+import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -39,23 +42,72 @@ public class ClassGenerator {
 
     public ClassInfo convertObject(Type sourceType, Type targetType) {
         ClassInfo classInfo = new ClassInfo();
-        Class<?> targetClass = ClassTypeUtil.getSelfClass(targetType);
         generateMethod(Modifier.PUBLIC, sourceType, targetType);
         classInfo.addMethods(new ArrayList<>(methodsMap.values()));
-        classInfo.setClassName(generateClassName(targetClass.getSimpleName()));
+        classInfo.setClassName(generateClassName());
         log.info("class generated, key:{}->{} , name:{}", sourceType.getTypeName(), targetType.getTypeName(), classInfo.getClassName());
         log.debug(JavaCodeFormattingUtil.tryFormat(classInfo.toJavaSourceString()));
         return classInfo;
     }
 
 
-    private MethodInfo genConvertObjectMethod(final Modifier modifier,
-                                              final Type sourceType,
-                                              final Type targetType) {
-        Class<?> sourceClass = ClassTypeUtil.getSelfClass(sourceType);
-        Class<?> targetClass = ClassTypeUtil.getSelfClass(targetType);
+    /**
+     * 未知的两个对象之间的转换
+     * @param sourceType
+     * @param targetType
+     * @return
+     */
+    private MethodInfo generateMethod(final Modifier modifier,
+                                      final Type sourceType,
+                                      final Type targetType){
+        //已经生成过了，直接返回
+        Optional<MethodInfo> generatedMethod = getGeneratedMethod(sourceType, targetType);
+        if(generatedMethod.isPresent()) {
+            return generatedMethod.get();
+        }
+        //source type is single object
+        if (sourceType instanceof Class) {
+            if (targetType instanceof Class) {
+                //single object convert to single object
+                return genSingleObject2SingleObject(modifier, (Class<?>) sourceType, (Class<?>)targetType);
+            }
+        } else if (sourceType instanceof GenericArrayType) {
+            //source type is array
+            if (targetType instanceof GenericArrayType) {
+                //target type is array, convert array to array
+                return genArray2Array(modifier, (GenericArrayType)sourceType, (GenericArrayType)targetType);
+            }
+            if (targetType instanceof ParameterizedType
+                    && Collection.class.isAssignableFrom(ClassTypeUtil.getSelfClass(targetType))) {
+                //target type is collection, convert array to collection
+                // TODO: 2022/11/18  convert array to collection
+                return null;
+            }
+        }else if (sourceType instanceof ParameterizedType) {
+            //source type is Parameterized Type
+            Class<?> sourceClass = ClassTypeUtil.getSelfClass(sourceType);
+            if (Collection.class.isAssignableFrom(sourceClass)) {
+                //source type is collection
+                if (targetType instanceof GenericArrayType) {
+                    //target type is array, convert collection to array
+                    // TODO: 2022/11/18  convert collection to array
+                }
+                if (targetType instanceof ParameterizedType
+                        && Collection.class.isAssignableFrom(ClassTypeUtil.getSelfClass(targetType))) {
+                    //target type is collection, convert collection to collection
+                    return genCollection2Collection(modifier, (ParameterizedType) sourceType, (ParameterizedType)targetType);
+                }
+            }
+        }
+        return null;
+    }
+
+    private MethodInfo genSingleObject2SingleObject(final Modifier modifier,
+                                              final Class<?> sourceClass,
+                                              final Class<?> targetClass) {
+
         final String methodName = modifier == Modifier.PUBLIC ? "convert" : generateMethodName(sourceClass, targetClass);
-        MethodInfo methodInfo = new MethodInfo(modifier, targetType, methodName, sourceType);
+        MethodInfo methodInfo = new MethodInfo(modifier, targetClass, methodName, sourceClass);
         saveMethod(methodInfo);
         methodInfo.addCode("if(source == null) return null;");
         methodInfo.addCode(targetClass.getCanonicalName() + " target = new " + targetClass.getCanonicalName() + "();");
@@ -107,23 +159,25 @@ public class ClassGenerator {
 
 
     /**
-     * convertList
-     * @param sourceType 源类型，List<S>
-     * @param targetType 目标类型，List<T>
+     * convert collection to collection
+     * @param sourceType 源类型，e.g. List<S>
+     * @param targetType 目标类型，e.g.List<T>
      * @return
      */
-    private MethodInfo genConvertCollectionMethod(final Modifier modifier,
-                                                  final Type sourceType,
-                                                  final Type targetType){
-        Type sourceGeneric = ClassTypeUtil.getGenerics(sourceType)[0];
-        Type targetGeneric = ClassTypeUtil.getGenerics(targetType)[0];
-        Class<?> sourceClass = ClassTypeUtil.getSelfClass(sourceType);
-        Class<?> targetClass = ClassTypeUtil.getSelfClass(targetType);
+    private MethodInfo genCollection2Collection(final Modifier modifier,
+                                                  final ParameterizedType sourceType,
+                                                  final ParameterizedType targetType){
+        //Type sourceGeneric = sourceType.getOwnerType();
+        Type sourceGeneric = sourceType.getActualTypeArguments()[0];
+        Type targetGeneric = targetType.getActualTypeArguments()[0];
+        Class<?> sourceClass = (Class<?>)sourceType.getRawType();
+        Class<?> targetClass = (Class<?>)targetType.getRawType();
 
         final String methodName = modifier == Modifier.PUBLIC ? "convert" : generateMethodName(sourceClass, targetClass);
         MethodInfo methodInfo = new MethodInfo(modifier, targetType, methodName, sourceType);
         saveMethod(methodInfo);
         methodInfo.addCode("if(source == null){return null;}");
+
         if(targetClass.isInterface()){
             //抽象类，如List、Set，无法直接new
             String newInstanceCode = null;
@@ -131,13 +185,15 @@ public class ClassGenerator {
                 newInstanceCode = targetType.getTypeName() + " target = new java.util.ArrayList<>();";
             }else if(Set.class.isAssignableFrom(targetClass)){
                 newInstanceCode = targetType.getTypeName() + " target = new java.util.HashSet<>();";
+            }else {
+                return null;
             }
             methodInfo.addCode(newInstanceCode);
         }else{
             methodInfo.addCode(targetType.getTypeName()+" target = new " + targetType.getTypeName() + "();");
         }
-
         methodInfo.addCode("for(" + sourceGeneric.getTypeName() + " sub: source){");
+
         if(ClassTypeUtil.couldDirectConvert(sourceClass) && ClassTypeUtil.couldDirectConvert(targetClass)){
             //诸如integer，long，date，String类型的可以直接进行转换
             String convertCode = ConversionUtil.convert(sourceGeneric, targetGeneric, "sub");
@@ -157,47 +213,51 @@ public class ClassGenerator {
     }
 
 
-    /**
-     * 未知的两个对象之间的转换
-     * @param sourceType
-     * @param targetType
-     * @return
-     */
-    private MethodInfo generateMethod(final Modifier modifier,
-                                      final Type sourceType,
-                                      final Type targetType){
-        //已经生成过了，直接返回
-        Optional<MethodInfo> generatedMethod = getGeneratedMethod(sourceType, targetType);
-        if(generatedMethod.isPresent()) {
-            return generatedMethod.get();
+    public MethodInfo genArray2Array(final Modifier modifier,
+                                     final GenericArrayType sourceType,
+                                     final GenericArrayType targetType) {
+
+        final String methodName = modifier == Modifier.PUBLIC ? "convert" :
+                generateMethodName((Class<?>) sourceType.getGenericComponentType(), (Class<?>)targetType.getGenericComponentType());
+        String SourceSelfClassName = sourceType.getGenericComponentType().getTypeName().replace("[]", "");
+        String targetSelfClassName = targetType.getGenericComponentType().getTypeName().replace("[]", "");
+        try {
+            Class<?> sourceSelfClass = Class.forName(SourceSelfClassName);
+            Class<?> targetSelfClass = Class.forName(targetSelfClassName);
+            String convertCode = null;
+            MethodInfo m = null;
+            if (ClassTypeUtil.couldDirectConvert(sourceSelfClass) && ClassTypeUtil.couldDirectConvert(targetSelfClass)) {
+                convertCode = ConversionUtil.convertArray(sourceSelfClass, targetSelfClass, "sub");
+            }else{
+                m = generateMethod(Modifier.PRIVATE, sourceSelfClass, targetSelfClass);
+            }
+            MethodInfo methodInfo = new MethodInfo(modifier, targetType, methodName, sourceType);
+            methodInfo.addCode(targetSelfClassName + "[] target=new " + targetSelfClassName + "[source.length];");
+            methodInfo.addCode("for(int i=0;i<source.length;i++){");
+            methodInfo.addCode(SourceSelfClassName + " sub = source[i];");
+            if (convertCode != null) {
+                methodInfo.addCode(convertCode);
+            } else if (m != null) {
+                methodInfo.addCode("target[i]="+m.getMethodName()+"(sub);");
+            }
+            methodInfo.addCode("}");
+            methodInfo.addCode("return target;");
+            saveMethod(methodInfo);
+            return methodInfo;
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
-        //获取原始类型
-        Class<?> sourceClass = ClassTypeUtil.getSelfClass(sourceType);
-        Class<?> targetClass = ClassTypeUtil.getSelfClass(targetType);
-        if (ClassTypeUtil.couldDirectConvert(sourceClass) || ClassTypeUtil.couldDirectConvert(targetClass)) {
-            //一个是基本数据类型，另一个不是基本数据类型，这种情况是异常的，无法进行转换
-            log.error("class {} can not convert to {}", sourceClass.getName(), targetClass.getName());
-            return null;
-        }
-        if (Collection.class.isAssignableFrom(sourceClass) && Collection.class.isAssignableFrom(targetClass)) {
-            //集合之间的转换
-            return genConvertCollectionMethod(modifier,
-                    sourceType, targetType);
-        }
-        //普通对象之间的转换
-        return genConvertObjectMethod(modifier,
-                sourceType,
-                targetType);
+
+
     }
 
     /**
      * 类名生成规则：目标类名+$Conversion+no，no从1开始
      *
-     * @param className
      * @return
      */
-    private String generateClassName(String className) {
-        return className + "$Conversion" + NO.getAndIncrement();
+    private String generateClassName() {
+        return  "GeneratedConversion" + NO.getAndIncrement();
     }
 
     /**

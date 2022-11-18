@@ -4,6 +4,7 @@ package io.github.lyrric.easymapstruct.util;
 import io.github.lyrric.easymapstruct.model.ParameterizedTypeImpl;
 import net.openhft.compiler.CompilerUtils;
 
+import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.time.LocalDate;
@@ -67,6 +68,12 @@ public class ClassTypeUtil {
         return clazz.isPrimitive() || isWrapper(clazz) || classes.contains(clazz);
     }
 
+//    public static boolean isCollection(final Type type){
+//        return Collection.class.isAssignableFrom(getSelfClass(type));
+//    }
+//    public static boolean isArray(final Type type){
+//        return getSelfClass(type).isArray();
+//    }
     /**
      * 获取原始类型的包装对象
      * @return
@@ -83,6 +90,34 @@ public class ClassTypeUtil {
     }
 
     /**
+     * 获取Type的定义代码
+     * 基本对象返回如：io.github.User
+     * 泛型ArrayList返回如：java.util.ArrayList<io.github.User>
+     * 泛型HashSet返回如：java.util.hashSet<io.github.User>
+     * 数组返回如：io.github.User[]
+     * type.getCanonicalName()
+     *     对于带有泛型的类来说，如List，会返回“java.util.List”，缺少了泛型信息。
+     *     对于其他类型的类来说，是正常的。
+     * type.getTypeName()
+     *     对于带有泛型的类来说，会返回如“java.util.List<SourcePerson>”的字符串，也是我们需要的格式。
+     *     对于内部类来说，会返回如“com.test.model.TargetPerson$SubTargetItem”格式，这个格式是JVM内部认可的格式，
+     *          但是无法直接在代码中使用，代码中访问内部类必须是com.test.model.TargetPerson.SubTargetItem
+     *  所以这里需要判断类型， 根据不同的类型，用不同的方法。
+     * @param type
+     * @return
+     */
+    public static String getClassDefinitionCode(Type type){
+        if (type instanceof Class) {
+            return ((Class<?>) type).getCanonicalName();
+        } else if (type instanceof ParameterizedType) {
+            return type.getTypeName();
+        }else if (type instanceof GenericArrayType) {
+            return ((GenericArrayType) type).getGenericComponentType().getTypeName();
+        }else {
+            throw new RuntimeException("error");
+        }
+    }
+    /**
      * 是否有泛型
      * @param type
      * @return
@@ -91,14 +126,7 @@ public class ClassTypeUtil {
         return type instanceof ParameterizedType;
     }
 
-    /**
-     * 获取泛型列表
-     * @param type
-     * @return
-     */
-    public static Type[] getGenerics(Type type){
-        return ((ParameterizedType)type).getActualTypeArguments();
-    }
+
 
 
     /**
@@ -117,14 +145,6 @@ public class ClassTypeUtil {
         return sourceClass.getTypeName() + "->" +  targetClass.getTypeName();
     }
 
-    public static Type wrapType(Class<?> rawType,
-                                Class<?> ownerType,
-                                Class<?> actualClassArgument){
-        Class<?>[] actualTypeArguments = {actualClassArgument};
-        return ParameterizedTypeImpl.make(rawType,
-                actualTypeArguments,
-                ownerType);
-    }
 
     public static Class<?> hftCompile(String className, String javaCode) throws ClassNotFoundException {
         return CompilerUtils.CACHED_COMPILER.loadFromJava(className, javaCode);

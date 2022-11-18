@@ -14,8 +14,10 @@ TargetPerson targetPeople = EasyMapStruct.mapSingleton(sourcePerson, TargetPerso
 List<TargetPerson> targetPeoples = EasyMapStruct.mapList(sourcePeoples, TargetPerson.class);  
 ### set  
 Set<TargetPerson> targetPeoples = EasyMapStruct.mapSet(sourcePeoples, TargetPerson.class);  
-
+### array
+TargetPerson[] targetPeoples = EasyMapStruct.mapArray(sourcePeoples, TargetPerson.class);
 ## 更新记录
+- 2022年11月23日 v0.2，支持数组与数组之间的转换
 - 2022年11月11日 v0.1版本，支持了内部类之间的转换。
 ## 问题
 - 第一次编译的时间总是很长，1.7s多，得想个办法在启动后主动触发一次编译  
@@ -27,3 +29,6 @@ Set<TargetPerson> targetPeoples = EasyMapStruct.mapSet(sourcePeoples, TargetPers
 - EasyMap.mapList，不支持多重泛型，即只支持List<SourcePerson\> <\-\> List\<TargetPerson\>，
   不支持List<List<SourcePerson\>\>和List<Map<String,SourcePerson\>\>  
 - 不支持最外层的简单类型的转换即int<->String，int<->long
+## TODO
+- Array to Collection
+- Collection to Array
