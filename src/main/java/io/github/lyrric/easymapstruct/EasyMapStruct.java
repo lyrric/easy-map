@@ -1,7 +1,6 @@
 package io.github.lyrric.easymapstruct;
 
 import io.github.lyrric.easymapstruct.generator.ClassGenerator;
-import io.github.lyrric.easymapstruct.model.GenericArrayTypeImpl;
 import io.github.lyrric.easymapstruct.model.ParameterizedTypeImpl;
 import io.github.lyrric.easymapstruct.model.generate.ClassInfo;
 import io.github.lyrric.easymapstruct.util.ClassTypeUtil;
@@ -20,7 +19,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class EasyMapStruct {
 
     private static final Map<String, ClassInfo> instanceMap = new ConcurrentHashMap<>();
-
 
 
     public static <T> T mapSingleton(Object source, Class<T> targetClass) {
@@ -59,28 +57,19 @@ public class EasyMapStruct {
         return result;
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> T[] mapArray(Object[] sourceArray, Class<T> targetClass){
         if(sourceArray == null ) return null;
         if(sourceArray.length == 0) return (T[]) new Object[0];
-        String targetArrayClassName = "[L" + targetClass.getTypeName() + ";";
-        try {
-            Class<?> targetArrayClass = Class.forName(targetArrayClassName);
-            GenericArrayTypeImpl sourceType = GenericArrayTypeImpl.make(sourceArray.getClass());
-            GenericArrayTypeImpl targetType = GenericArrayTypeImpl.make(targetArrayClass);
-            @SuppressWarnings("unchecked")
-            T[] result = (T[]) map(sourceType, targetType, sourceArray);
-            return result;
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        Class<?> targetArray = ClassTypeUtil.getClassByName("[L" + targetClass.getCanonicalName()+";");
+        return (T[]) map(sourceArray.getClass(), targetArray, sourceArray);
     }
 
     private static Object map(Type source, Type target, Object sourceData) {
         ClassInfo classInfo = getClassInfo(source, target);
-        Object instance = classInfo.getInstance();
         try {
-            Method method = findMethod(instance.getClass());
-            return method.invoke(instance, sourceData);
+            Method method = findMethod(classInfo.getConvertClass());
+            return method.invoke(classInfo.getConvertClass(), sourceData);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
@@ -95,12 +84,10 @@ public class EasyMapStruct {
             try {
                 long start = System.currentTimeMillis();
                 Class<?> clazz = ClassTypeUtil.hftCompile(classInfo.getPackageStr()+"."+classInfo.getClassName(), javaSourceString);
-                classInfo.setClazz(clazz);
+                classInfo.setConvertClass(clazz);
                 long end = System.currentTimeMillis();
                 log.info("key:{}, class name: {} 编译耗时：{}", key, classInfo.getClassName(), (end - start));
-                Object instance = clazz.newInstance();
-                classInfo.setInstance(instance);
-            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+            } catch (ClassNotFoundException e) {
                 //我生成的代码有啥东西我还不知道吗，抛你大爷的异常
                 String errMsg = String.format("generate class exception, source type: %s, target type: %s, error message: %s", source, target, e.getMessage());
                 log.error(errMsg);

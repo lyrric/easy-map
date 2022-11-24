@@ -8,7 +8,6 @@ import org.junit.Test;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -18,9 +17,7 @@ public class TestMain {
 
     @Test
     public void testSingle()  {
-        SourcePerson sourcePerson = new SourcePerson();
-        sourcePerson.setId(1);
-        sourcePerson.setUuid(12345L);
+        SourcePerson sourcePerson = getSourcePerson();
         TargetPerson targetPeople = EasyMapStruct.mapSingleton(sourcePerson, TargetPerson.class);
         SourcePerson result = EasyMapStruct.mapSingleton(targetPeople, SourcePerson.class);
         assert result.equals(sourcePerson);
@@ -28,10 +25,7 @@ public class TestMain {
 
     @Test
     public void testList() {
-        SourcePerson sourcePerson = new SourcePerson();
-        sourcePerson.setId(1);
-        sourcePerson.setUuid(12345L);
-        List<SourcePerson> sourcePeoples = Collections.singletonList(sourcePerson);
+        List<SourcePerson> sourcePeoples = Collections.singletonList(getSourcePerson());
         List<TargetPerson> targetPeoples = EasyMapStruct.mapList(sourcePeoples, TargetPerson.class);
         List<SourcePerson> result = EasyMapStruct.mapList(targetPeoples, SourcePerson.class);
         assert result.equals(sourcePeoples);
@@ -39,10 +33,7 @@ public class TestMain {
 
     @Test
     public void testSet()  {
-        SourcePerson sourcePerson = new SourcePerson();
-        sourcePerson.setId(1);
-        sourcePerson.setUuid(12345L);
-        Set<SourcePerson> sourcePeoples = Collections.singleton(sourcePerson);
+        Set<SourcePerson> sourcePeoples = Collections.singleton(getSourcePerson());
         Set<TargetPerson> targetPeoples = EasyMapStruct.mapSet(sourcePeoples, TargetPerson.class);
         Set<SourcePerson> result = EasyMapStruct.mapSet(targetPeoples, SourcePerson.class);
         assert result.equals(sourcePeoples);
@@ -52,10 +43,7 @@ public class TestMain {
 
     @Test
     public void testArray(){
-        SourcePerson sourcePerson = new SourcePerson();
-        sourcePerson.setId(1);
-        sourcePerson.setUuid(123L);
-        SourcePerson[] source = new SourcePerson[]{sourcePerson};
+        SourcePerson[] source = new SourcePerson[]{getSourcePerson()};
         TargetPerson[] target = EasyMapStruct.mapArray(source, TargetPerson.class);
         SourcePerson[] result = EasyMapStruct.mapArray(target, SourcePerson.class);
         for (int i = 0; i < source.length; i++) {
@@ -73,12 +61,21 @@ public class TestMain {
     }
 
     @Test
-    public void test(){
-        SourcePerson[] sourcePeople = new SourcePerson[1];
-        Class<? extends SourcePerson[]> aClass = sourcePeople.getClass();
-        System.out.println(aClass.getName());
-        System.out.println(aClass.getTypeName());
-        System.out.println(aClass.getCanonicalName());
-        System.out.println(aClass.getSimpleName());
+    public void test() {
+      
+    }
+
+
+    private SourcePerson getSourcePerson(){
+        SourcePerson sourcePerson = new SourcePerson();
+        sourcePerson.setId(55);
+        sourcePerson.setUuid(999L);
+        sourcePerson.setSubIds(new Integer[]{1,2,3,4,5});
+        SourcePerson.SubSourceItem subSourceItem = new SourcePerson.SubSourceItem();
+        subSourceItem.setSubId(99);
+        sourcePerson.setSubItem(subSourceItem);
+        sourcePerson.setSubItems(new SourcePerson.SubSourceItem[]{subSourceItem});
+        sourcePerson.setSubItemList(Collections.singletonList(subSourceItem));
+        return sourcePerson;
     }
 }

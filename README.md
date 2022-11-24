@@ -10,11 +10,11 @@
 ## 使用方法  
 ### 单个对象
 TargetPerson targetPeople = EasyMapStruct.mapSingleton(sourcePerson, TargetPerson.class);  
-### list
+### List
 List<TargetPerson> targetPeoples = EasyMapStruct.mapList(sourcePeoples, TargetPerson.class);  
-### set  
+### Set  
 Set<TargetPerson> targetPeoples = EasyMapStruct.mapSet(sourcePeoples, TargetPerson.class);  
-### array
+### Array
 TargetPerson[] targetPeoples = EasyMapStruct.mapArray(sourcePeoples, TargetPerson.class);
 ## 更新记录
 - 2022年11月23日 v0.2，支持数组与数组之间的转换
@@ -32,3 +32,4 @@ TargetPerson[] targetPeoples = EasyMapStruct.mapArray(sourcePeoples, TargetPerso
 ## TODO
 - Array to Collection
 - Collection to Array
+- Conversion of Date、LocalDate、LocalDateTime 

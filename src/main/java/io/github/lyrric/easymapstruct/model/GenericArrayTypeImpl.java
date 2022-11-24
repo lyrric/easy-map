@@ -4,7 +4,7 @@ import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Type;
 
 /**
- * 泛型数组
+ * 泛型数组，e.g.List< String >[]
  */
 public class GenericArrayTypeImpl implements GenericArrayType {
 

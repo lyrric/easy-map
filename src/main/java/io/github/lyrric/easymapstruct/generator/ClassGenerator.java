@@ -2,7 +2,6 @@ package io.github.lyrric.easymapstruct.generator;
 
 import io.github.lyrric.easymapstruct.constant.Constant;
 import io.github.lyrric.easymapstruct.conversion.ConversionUtil;
-import io.github.lyrric.easymapstruct.model.ParameterizedTypeImpl;
 import io.github.lyrric.easymapstruct.model.generate.ClassInfo;
 import io.github.lyrric.easymapstruct.model.generate.MethodInfo;
 import io.github.lyrric.easymapstruct.util.ClassTypeUtil;
@@ -68,19 +67,23 @@ public class ClassGenerator {
         //source type is single object
         if (sourceType instanceof Class) {
             if (targetType instanceof Class) {
+                if (((Class<?>) targetType).isArray() && ((Class<?>) sourceType).isArray()) {
+                    //target type is array, convert array to array
+                    return genArray2Array(modifier, (Class<?>) sourceType,(Class<?>)  targetType);
+                }
                 //single object convert to single object
                 return genSingleObject2SingleObject(modifier, (Class<?>) sourceType, (Class<?>)targetType);
             }
         } else if (sourceType instanceof GenericArrayType) {
-            //source type is array
+            //source type is generic array
             if (targetType instanceof GenericArrayType) {
-                //target type is array, convert array to array
-                return genArray2Array(modifier, (GenericArrayType)sourceType, (GenericArrayType)targetType);
+                //target type is generic array
+                return null;
             }
             if (targetType instanceof ParameterizedType
                     && Collection.class.isAssignableFrom(ClassTypeUtil.getSelfClass(targetType))) {
-                //target type is collection, convert array to collection
-                // TODO: 2022/11/18  convert array to collection
+                //target type is collection, convert generic array to collection
+                // TODO: 2022/11/18  convert generic array to collection
                 return null;
             }
         }else if (sourceType instanceof ParameterizedType) {
@@ -128,25 +131,21 @@ public class ClassGenerator {
                     .ifPresent(targetMethod -> {
                         Type sourceFieldType = sourceMethod.getGenericReturnType();
                         Type targetFieldType = targetMethod.getGenericParameterTypes()[0];
-                        Class<?> sourceFieldClass = ClassTypeUtil.getSelfClass(sourceFieldType);
-                        Class<?> targetFieldClass = ClassTypeUtil.getSelfClass(targetFieldType);
-                        String convertCode = ConversionUtil.convert(sourceFieldType, targetFieldType, getterCode(sourceMethod));
-
-                        if(convertCode != null){
-                            convertCode = setterCode(targetMethod, convertCode);
-                        }
-                        if(convertCode == null){
-                            //直接转换失败，判断是不是复杂对象
-                            if(!ClassTypeUtil.couldDirectConvert(sourceFieldClass)
-                                    && !ClassTypeUtil.couldDirectConvert(targetFieldClass)){
-                                //复杂对象之间进行转换
-                                //先判断是否已经生成过对应的转换
-                                Optional<MethodInfo> generatedMethod = getGeneratedMethod(sourceFieldType, targetFieldType);
-                                MethodInfo m = generatedMethod.orElse(generateMethod(Modifier.PRIVATE, sourceFieldType, targetFieldType));
-                                if(m != null){
-                                    convertCode = Constant.TARGET + "." + targetMethod.getName() + "(" + m.getMethodName()+"("+getterCode(sourceMethod)+"));";
-                                }
+                        String convertCode = null;
+                        if (ClassTypeUtil.couldDirectConvert(sourceFieldType) && ClassTypeUtil.couldDirectConvert(targetFieldType) ) {
+                            convertCode = ConversionUtil.convert(sourceFieldType, targetFieldType, getterCode(sourceMethod));
+                            if (convertCode != null) {
+                                convertCode = setterCode(targetMethod, convertCode);
                             }
+                        }else{
+                            //复杂对象之间进行转换
+                            //先判断是否已经生成过对应的转换
+                            Optional<MethodInfo> generatedMethod = getGeneratedMethod(sourceFieldType, targetFieldType);
+                            MethodInfo m = generatedMethod.orElse(generateMethod(Modifier.PRIVATE, sourceFieldType, targetFieldType));
+                            if(m != null){
+                                convertCode = Constant.TARGET + "." + targetMethod.getName() + "(" + m.getMethodName()+"("+getterCode(sourceMethod)+"));";
+                            }
+
                         }
                         if(convertCode != null){
                             methodInfo.addCode(convertCode);
@@ -175,24 +174,23 @@ public class ClassGenerator {
 
         final String methodName = modifier == Modifier.PUBLIC ? "convert" : generateMethodName(sourceClass, targetClass);
         MethodInfo methodInfo = new MethodInfo(modifier, targetType, methodName, sourceType);
-        saveMethod(methodInfo);
         methodInfo.addCode("if(source == null){return null;}");
 
         if(targetClass.isInterface()){
             //抽象类，如List、Set，无法直接new
             String newInstanceCode = null;
             if(List.class.isAssignableFrom(targetClass)){
-                newInstanceCode = targetType.getTypeName() + " target = new java.util.ArrayList<>();";
+                newInstanceCode = ClassTypeUtil.getClassDefinitionCode(targetType) + " target = new java.util.ArrayList<>();";
             }else if(Set.class.isAssignableFrom(targetClass)){
-                newInstanceCode = targetType.getTypeName() + " target = new java.util.HashSet<>();";
+                newInstanceCode = ClassTypeUtil.getClassDefinitionCode(targetType) + " target = new java.util.HashSet<>();";
             }else {
                 return null;
             }
             methodInfo.addCode(newInstanceCode);
         }else{
-            methodInfo.addCode(targetType.getTypeName()+" target = new " + targetType.getTypeName() + "();");
+            methodInfo.addCode(ClassTypeUtil.getClassDefinitionCode(targetType) + " target = new " + ClassTypeUtil.getClassDefinitionCode(targetType) + "();");
         }
-        methodInfo.addCode("for(" + sourceGeneric.getTypeName() + " sub: source){");
+        methodInfo.addCode("for(" + ClassTypeUtil.getClassDefinitionCode(sourceGeneric) + " sub: source){");
 
         if(ClassTypeUtil.couldDirectConvert(sourceClass) && ClassTypeUtil.couldDirectConvert(targetClass)){
             //诸如integer，long，date，String类型的可以直接进行转换
@@ -209,44 +207,43 @@ public class ClassGenerator {
         }
         methodInfo.addCode("}");
         methodInfo.addCode("return target;");
+        saveMethod(methodInfo);
         return methodInfo;
     }
 
 
     public MethodInfo genArray2Array(final Modifier modifier,
-                                     final GenericArrayType sourceType,
-                                     final GenericArrayType targetType) {
+                                     final Class<?> sourceType,
+                                     final Class<?> targetType) {
 
         final String methodName = modifier == Modifier.PUBLIC ? "convert" :
-                generateMethodName((Class<?>) sourceType.getGenericComponentType(), (Class<?>)targetType.getGenericComponentType());
-        String SourceSelfClassName = sourceType.getGenericComponentType().getTypeName().replace("[]", "");
-        String targetSelfClassName = targetType.getGenericComponentType().getTypeName().replace("[]", "");
-        try {
-            Class<?> sourceSelfClass = Class.forName(SourceSelfClassName);
-            Class<?> targetSelfClass = Class.forName(targetSelfClassName);
-            String convertCode = null;
-            MethodInfo m = null;
-            if (ClassTypeUtil.couldDirectConvert(sourceSelfClass) && ClassTypeUtil.couldDirectConvert(targetSelfClass)) {
-                convertCode = ConversionUtil.convertArray(sourceSelfClass, targetSelfClass, "sub");
-            }else{
-                m = generateMethod(Modifier.PRIVATE, sourceSelfClass, targetSelfClass);
-            }
-            MethodInfo methodInfo = new MethodInfo(modifier, targetType, methodName, sourceType);
-            methodInfo.addCode(targetSelfClassName + "[] target=new " + targetSelfClassName + "[source.length];");
-            methodInfo.addCode("for(int i=0;i<source.length;i++){");
-            methodInfo.addCode(SourceSelfClassName + " sub = source[i];");
-            if (convertCode != null) {
-                methodInfo.addCode(convertCode);
-            } else if (m != null) {
-                methodInfo.addCode("target[i]="+m.getMethodName()+"(sub);");
-            }
-            methodInfo.addCode("}");
-            methodInfo.addCode("return target;");
-            saveMethod(methodInfo);
-            return methodInfo;
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+                generateMethodName(sourceType, targetType);
+        String sourceSelfClassName = sourceType.getTypeName().replace("[]", "");
+        String targetSelfClassName = targetType.getTypeName().replace("[]", "");
+        Class<?> sourceSelfClass = ClassTypeUtil.getClassByName(sourceSelfClassName);
+        Class<?> targetSelfClass = ClassTypeUtil.getClassByName(targetSelfClassName);
+        String convertCode = null;
+        MethodInfo m = null;
+        if (ClassTypeUtil.couldDirectConvert(sourceSelfClass) && ClassTypeUtil.couldDirectConvert(targetSelfClass)) {
+            convertCode = ConversionUtil.convertArray(sourceSelfClass, targetSelfClass, "sub");
+        }else{
+            m = generateMethod(Modifier.PRIVATE, sourceSelfClass, targetSelfClass);
         }
+        MethodInfo methodInfo = new MethodInfo(modifier, targetType, methodName, sourceType);
+        methodInfo.addCode("if(source == null) return null;");
+        methodInfo.addCode(ClassTypeUtil.getClassDefinitionCode(targetType) + " target=new " +
+                ClassTypeUtil.getClassDefinitionCode(targetType).replace("[]","[source.length];"));
+        methodInfo.addCode("for(int i=0;i<source.length;i++){");
+        methodInfo.addCode(ClassTypeUtil.getClassDefinitionCode(sourceType).replace("[]", "") + " sub = source[i];");
+        if (convertCode != null) {
+            methodInfo.addCode(convertCode);
+        } else if (m != null) {
+            methodInfo.addCode("target[i]="+m.getMethodName()+"(sub);");
+        }
+        methodInfo.addCode("}");
+        methodInfo.addCode("return target;");
+        saveMethod(methodInfo);
+        return methodInfo;
 
 
     }
@@ -268,7 +265,9 @@ public class ClassGenerator {
      * @return
      */
     private String generateMethodName(Class<?> sourceClass, Class<?> targetClass) {
-        String methodName = sourceClass.getSimpleName() + "To" + targetClass.getSimpleName();
+        String methodName = (sourceClass.getSimpleName() + "To" +
+                targetClass.getSimpleName())
+                .replaceAll("\\[]","");
         //我就不信你这个方法能重名Integer.MAX_VALUE次
         for (int i = 0; i < Integer.MAX_VALUE; i++) {
             if (!methodNames.contains(methodName)) {

@@ -1,7 +1,6 @@
 package io.github.lyrric.easymapstruct.util;
 
 
-import io.github.lyrric.easymapstruct.model.ParameterizedTypeImpl;
 import net.openhft.compiler.CompilerUtils;
 
 import java.lang.reflect.GenericArrayType;
@@ -55,17 +54,21 @@ public class ClassTypeUtil {
     }
     /**
      * 是否可以直接转换
-     * @param clazz
+     * @param type
      * @return
      */
-    public static boolean couldDirectConvert(Class<?> clazz){
-        List<Class<?>> classes = Arrays.asList(
-                String.class,
-                Date.class,
-                LocalDate.class,
-                LocalDateTime.class
-        );
-        return clazz.isPrimitive() || isWrapper(clazz) || classes.contains(clazz);
+    public static boolean couldDirectConvert(Type type){
+        if (type instanceof Class) {
+            Class<?> clazz = (Class<?>)type;
+            List<Class<?>> classes = Arrays.asList(
+                    String.class,
+                    Date.class,
+                    LocalDate.class,
+                    LocalDateTime.class
+            );
+            return clazz.isPrimitive() || isWrapper(clazz) || classes.contains(clazz);
+        }
+        return false;
     }
 
 //    public static boolean isCollection(final Type type){
@@ -110,7 +113,9 @@ public class ClassTypeUtil {
         if (type instanceof Class) {
             return ((Class<?>) type).getCanonicalName();
         } else if (type instanceof ParameterizedType) {
-            return type.getTypeName();
+            ParameterizedType pType = (ParameterizedType)type;
+            return pType.getRawType().getTypeName()+"<"+
+                    ((Class<?>)pType.getActualTypeArguments()[0]).getCanonicalName()+">";
         }else if (type instanceof GenericArrayType) {
             return ((GenericArrayType) type).getGenericComponentType().getTypeName();
         }else {
@@ -136,7 +141,7 @@ public class ClassTypeUtil {
      */
     public static Class<?> getSelfClass(Type type){
         if(hasGenerics(type)){
-            return (Class<?>) (((ParameterizedTypeImpl) type).getRawType());
+            return (Class<?>) (((ParameterizedType) type).getRawType());
         }else{
             return (Class<?>)type;
         }
@@ -145,6 +150,28 @@ public class ClassTypeUtil {
         return sourceClass.getTypeName() + "->" +  targetClass.getTypeName();
     }
 
+
+    static final Map<String, Class<?>> primitiveClassMap = new HashMap<>();
+
+    static {
+        primitiveClassMap.put("char", char.class);
+        primitiveClassMap.put("byte", byte.class);
+        primitiveClassMap.put("boolean", boolean.class);
+        primitiveClassMap.put("short", short.class);
+        primitiveClassMap.put("int", int.class);
+        primitiveClassMap.put("long", long.class);
+        primitiveClassMap.put("float", float.class);
+        primitiveClassMap.put("double", double.class);
+    }
+    public static Class<?> getClassByName(String className) {
+        return Optional.ofNullable(primitiveClassMap.get(className)).orElseGet(()-> {
+            try {
+                return (Class)Class.forName(className);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
 
     public static Class<?> hftCompile(String className, String javaCode) throws ClassNotFoundException {
         return CompilerUtils.CACHED_COMPILER.loadFromJava(className, javaCode);

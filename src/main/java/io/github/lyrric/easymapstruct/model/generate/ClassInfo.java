@@ -22,19 +22,18 @@ public class ClassInfo {
      */
     private final List<MethodInfo> methodInfos;
     /**
-     * 实例
-     */
-    private Object instance;
-    /**
      *
      */
-    private Class<?> clazz;
+    private Class<?> convertClass;
 
     public ClassInfo() {
         methodInfos = new ArrayList<>();
     }
 
 
+    public Class<?> getConvertClass() {
+        return convertClass;
+    }
 
     public void setClassName(String className) {
         this.className = className;
@@ -67,16 +66,7 @@ public class ClassInfo {
     }
 
 
-    public Object getInstance() {
-        return instance;
-    }
-
-    public void setInstance(Object instance) {
-        this.instance = instance;
-    }
-
-
-    public void setClazz(Class<?> clazz) {
-        this.clazz = clazz;
+    public void setConvertClass(Class<?> convertClass) {
+        this.convertClass = convertClass;
     }
 }
